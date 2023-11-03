@@ -30,7 +30,7 @@ public class TouchController : MonoBehaviour
 
     private void Update()
     {
-        // Top hareket ederken başka yöne hareket ettirilmemesi için kontrol konulmuştur.
+        // A control has been placed to prevent the ball from moving in another direction while it is moving.
         if (!ballMove)
         {
 #if UNITY_EDITOR
@@ -44,7 +44,7 @@ public class TouchController : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.LeftArrow))
                 direction = Vector2.left;
 #endif
-            // Tocuh kontrol kısmı https://gist.github.com/Fonserbc/ca6bf80b69914740b12da41c14023574 adresinden alınmıştır.
+            // Touch control part was taken from https://gist.github.com/Fonserbc/ca6bf80b69914740b12da41c14023574.
             if (Input.touches.Length > 0)
             {
                 Touch t = Input.GetTouch(0);

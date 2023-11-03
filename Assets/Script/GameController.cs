@@ -1,20 +1,17 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
-using System.Net.Mime;
 using UnityEngine;
-using UnityEngine.Experimental.PlayerLoop;
 using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
     {
         [SerializeField] private GameObject ball;
         [SerializeField] private Transform maze, floor;
-
+        [SerializeField] private CameraController cameraController;
         public Text _level,_limitedCounter;
         public Button _nextGame;
         public GameObject _pausePage, _gameModePage, _gameOverPage;
         private BallController ballController;
-        private float time;
+        private float levelTransitionPeriod = 1f; // seconds
         private MapModel map;
         private int level = 0;
         private int uiLevel = 0;
@@ -26,6 +23,7 @@ public class GameController : MonoBehaviour
         {
             DontDestroyOnLoad(this.gameObject);
         }
+        
         private void Start()
         {
             map = GetComponent<MapModel>();
@@ -92,24 +90,33 @@ public class GameController : MonoBehaviour
 
         public void gamaModeSelect(int mode)
         {
-            if (mode == 1)
+            PlayerPrefs.SetInt("player_limited_level", 2);
+            if((limitedGame && mode==1) || (!limitedGame && mode==0))
             {
-                // ToDo: PlayerPrefs save game
-                level = 2;
+                // mode did not change
+            }
+            else if (mode == 1)
+            {
+                // save and switch to limited mode
+                PlayerPrefs.SetInt("player_classic_level", level);
+                level = PlayerPrefs.GetInt("player_limited_level", 2);
+                Debug.Log(level+" "+limitedValue);
                 limitedValue = map.limitedValue[level];
                 limitedGame = true;
                 ballController.MoveCounter = 0;
-                uiLevel = level + 1;
-                _level.text = "Level" + 1;
                 _limitedCounter.gameObject.SetActive(true);
             }
             else
             {
-                // ToDo saved game
-                level = 0;
+                // save and switch to classic mode
+                PlayerPrefs.SetInt("player_limited_level", level);
+                level = PlayerPrefs.GetInt("player_classic_level", 0);
                 limitedGame = false;
                 _limitedCounter.gameObject.SetActive(false);
             }
+            
+            uiLevel = level + 1;
+            _level.text = "Level" + uiLevel;
             levelPassCounter = 0;
             createMap(map.maze, level);
             _gameModePage.SetActive(false);
@@ -129,7 +136,11 @@ public class GameController : MonoBehaviour
         {
             if (level > 1)
             {
-                level = -1;
+                if(limitedGame)
+                    level = PlayerPrefs.GetInt("player_classic_level", 0) - 1;
+                else
+                    level = -1;
+
                 limitedGame = false;
                 _limitedCounter.gameObject.SetActive(false);
             }
@@ -137,15 +148,25 @@ public class GameController : MonoBehaviour
             _nextGame.gameObject.SetActive(false);
             uiLevel = level + 1;
             _level.text = "Level " + uiLevel;
-            createMap(map.maze, level);
+            ballController.ColoredWallCounter = 0; // explicitly set to 0 to avoid repeated call of levelFinished function.
+            cameraController.animateLevelSwitchTransition(levelTransitionPeriod);
+            StartCoroutine(changeMapInTransition());
         }
     #endregion
 
+        private IEnumerator changeMapInTransition()
+        {
+            float startTime = Time.time;
+            while(Time.time - startTime < levelTransitionPeriod / 2)
+            {
+                yield return new WaitForEndOfFrame();
+            }
+            createMap(map.maze, level);
+        }
+
         private void levelFinished()
         {
-            // ToDo Add Particular Effect
-            // Zemin hareket ettirilecek
-            _level.text = level+1 + ". SEVİYE TAMAMLANDI";
+            _level.text = level+1 + ". LEVEL COMPLETED";
             _nextGame.gameObject.SetActive(true);
         }
 

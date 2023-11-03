@@ -2,7 +2,7 @@
 
     public class MapModel : MonoBehaviour
     {
-        // Labirentlerin matris düzenleri
+        // Matrix layouts of mazes
         public int[,,] maze =
         { 
             {
@@ -51,7 +51,7 @@
                 { 1,1,1,1,1,1,1,1,1,1,1,1,1}
             }
         };
-        // Topun seviyeye göre pozisyon değerleri
+        // Position values of the ball according to the level
         public float[,] ballPosition =
         {
             {-5, 0, -1 },
